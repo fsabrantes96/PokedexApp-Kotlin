@@ -9,9 +9,13 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.GridLayoutManager
+import com.example.projetoventurus.R // ◀️ IMPORTANTE: Importe o R do seu app
 import com.example.projetoventurus.adapter.PokemonAdapter
 import com.example.projetoventurus.databinding.ActivityMainBinding
 import com.example.projetoventurus.viewmodel.PokemonViewModel
+
+// ◀️ ADICIONADO: Data class para ligar o nome de exibição à chave da API
+data class PokemonType(val displayName: String, val apiKey: String)
 
 class MainActivity : AppCompatActivity() {
 
@@ -86,47 +90,62 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
+
+    // ◀️ ATUALIZADA: Função de filtros foi reescrita
     private fun setupFilters() {
-        // --- 1. Criar os dados para os filtros ---
-        val tipos = listOf(
-            "Todos os Tipos", "Fire", "Water", "Grass", "Electric",
-            "Bug", "Poison", "Normal", "Flying", "Ground", "Fairy",
-            "Fighting", "Psychic", "Rock", "Ghost", "Ice", "Dragon"
+
+        // --- 1. Criar a lista de tipos usando as traduções ---
+
+        // Lista das chaves de API (que correspondem ao final das nossas chaves do strings.xml)
+        val apiTypeKeys = listOf(
+            "all", "fire", "water", "grass", "electric", "bug", "poison",
+            "normal", "flying", "ground", "fairy", "fighting", "psychic",
+            "rock", "ghost", "ice", "dragon"
         )
 
-        // ◀️ ATUALIZADO: Lista de gerações
+        // Cria a lista de objetos PokemonType
+        val pokemonTypesList = apiTypeKeys.map { key ->
+            // Encontra o ID do recurso string (ex: R.string.type_fire)
+            val resId = resources.getIdentifier("type_$key", "string", packageName)
+
+            // Busca a string traduzida (ex: "Fogo")
+            val translatedName = getString(resId)
+
+            PokemonType(displayName = translatedName, apiKey = key)
+        }
+
+        // --- 2. Criar a lista de gerações (pode ser traduzida da mesma forma se quiser) ---
         val geracoes = listOf(
-            "Geração I",
-            "Geração II",
-            "Geração III",
-            "Geração IV",
-            "Geração V"
+            "Geração I", "Geração II", "Geração III", "Geração IV", "Geração V"
         )
 
-        // --- 2. Criar os Adapters ---
-        val typeAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, tipos)
+        // --- 3. Criar os Adapters ---
+
+        // O adapter de tipo agora usa apenas os nomes de exibição (traduzidos)
+        val typeDisplayNames = pokemonTypesList.map { it.displayName }
+        val typeAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, typeDisplayNames)
+
         val generationAdapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, geracoes)
 
-        // --- 3. Conectar os Adapters aos AutoCompleteTextViews ---
+        // --- 4. Conectar os Adapters ---
         binding.autoCompleteType.setAdapter(typeAdapter)
         binding.autoCompleteGeneration.setAdapter(generationAdapter)
 
-        // --- 4. (Opcional) Definir um valor padrão ---
-        binding.autoCompleteType.setText(tipos[0], false)
+        // --- 5. Definir valores padrão ---
+        binding.autoCompleteType.setText(pokemonTypesList[0].displayName, false) // Mostra "Todos os Tipos"
         binding.autoCompleteGeneration.setText(geracoes[0], false)
 
-        // --- 5. Adicionar listeners para quando um item for selecionado ---
+        // --- 6. Adicionar listeners ---
         binding.autoCompleteType.setOnItemClickListener { parent, view, position, id ->
-            val selectedType = parent.getItemAtPosition(position) as String
+            // Encontra o objeto PokemonType que foi clicado
+            val selectedType = pokemonTypesList[position]
 
-            // Chama o ViewModel para filtrar por TIPO
-            viewModel.filterPokemonByType(selectedType)
+            // ◀️ Envia a CHAVE DA API ("fire", "water", "all") para o ViewModel
+            viewModel.filterPokemonByType(selectedType.apiKey)
         }
 
         binding.autoCompleteGeneration.setOnItemClickListener { parent, view, position, id ->
             val selectedGen = parent.getItemAtPosition(position) as String
-
-            // ◀️ ATUALIZADO: Chama o ViewModel para carregar a GERAÇÃO
             viewModel.filterPokemonByGeneration(selectedGen)
         }
     }

@@ -73,7 +73,8 @@ class PokemonViewModel : ViewModel() {
      * Filtra a lista de Pokémon baseado no tipo.
      */
     fun filterPokemonByType(typeName: String) {
-        if (typeName == "Todos os Tipos") {
+        // ◀️ ATUALIZADO: Checa pela chave "all"
+        if (typeName == "all") {
             _pokemonListFiltred.postValue(originalList)
             return
         }
@@ -81,6 +82,7 @@ class PokemonViewModel : ViewModel() {
         _isLoading.value = true
         viewModelScope.launch {
             try {
+                // O resto funciona, pois typeName será "fire", "water", etc.
                 val response = apiService.getPokemonByType(typeName.lowercase())
                 val namesFromTypeApi = response.pokemon.map { it.pokemon.name }.toSet()
 
@@ -99,10 +101,9 @@ class PokemonViewModel : ViewModel() {
     }
 
     /**
-     * ◀️ ATUALIZADO: Busca uma nova lista de Pokémon com base na Geração.
+     * Busca uma nova lista de Pokémon com base na Geração.
      */
     fun filterPokemonByGeneration(generationName: String) {
-        // Define o 'limit' e 'offset' com base na Geração
         val (limit, offset) = when (generationName) {
             "Geração I" -> 151 to 0
             "Geração II" -> 100 to 151
@@ -115,9 +116,7 @@ class PokemonViewModel : ViewModel() {
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // Busca a *nova* lista na API
                 val response = apiService.getPokemonList(limit = limit, offset = offset)
-                // Substitui a lista original pela nova
                 originalList = response.results
                 _pokemonListFiltred.postValue(originalList)
             } catch (e: Exception) {
