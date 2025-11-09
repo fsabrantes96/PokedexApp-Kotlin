@@ -60,4 +60,5 @@ dependencies {
     // RecyclerView
     implementation("androidx.recyclerview:recyclerview:1.3.0")
     implementation ("com.airbnb.android:lottie:6.4.0")
+    implementation ("androidx.palette:palette-ktx:1.0.0")
 }

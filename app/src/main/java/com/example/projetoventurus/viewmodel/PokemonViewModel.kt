@@ -18,11 +18,10 @@ class PokemonViewModel : ViewModel() {
     private val _pokemonListFiltred = MutableLiveData<List<PokemonResult>>()
     val pokemonListFiltred: LiveData<List<PokemonResult>> = _pokemonListFiltred
 
-    // LiveData para status de carregamento
+    // LiveData de Carregamento e Erro (Usado por ambas as telas)
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
-    // LiveData para erros
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> = _error
 
@@ -73,7 +72,6 @@ class PokemonViewModel : ViewModel() {
      * Filtra a lista de Pokémon baseado no tipo.
      */
     fun filterPokemonByType(typeName: String) {
-        // ◀️ ATUALIZADO: Checa pela chave "all"
         if (typeName == "all") {
             _pokemonListFiltred.postValue(originalList)
             return
@@ -82,11 +80,9 @@ class PokemonViewModel : ViewModel() {
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // O resto funciona, pois typeName será "fire", "water", etc.
                 val response = apiService.getPokemonByType(typeName.lowercase())
                 val namesFromTypeApi = response.pokemon.map { it.pokemon.name }.toSet()
 
-                // Filtra a lista ATUAL (originalList)
                 val filteredList = originalList.filter { pokemonGen ->
                     namesFromTypeApi.contains(pokemonGen.name)
                 }

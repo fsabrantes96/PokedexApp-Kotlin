@@ -1,6 +1,7 @@
 package com.example.projetoventurus.adapter
 
 import android.view.LayoutInflater
+import android.view.View // ◀️ Importe a View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -11,8 +12,8 @@ import com.example.projetoventurus.databinding.ItemPokemonBinding
 import com.example.projetoventurus.network.PokemonResult
 
 class PokemonAdapter(
-    // Lambda para lidar com o clique
-    private val onItemClicked: (PokemonResult) -> Unit
+    // ◀️ ATUALIZADO: O lambda agora passa o Pokémon E a View (ImageView) que foi clicada
+    private val onItemClicked: (PokemonResult, View) -> Unit
 ) : ListAdapter<PokemonResult, PokemonAdapter.PokemonViewHolder>(PokemonDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PokemonViewHolder {
@@ -28,7 +29,7 @@ class PokemonAdapter(
     // --- ViewHolder ---
     class PokemonViewHolder(
         private val binding: ItemPokemonBinding,
-        private val onItemClicked: (PokemonResult) -> Unit
+        private val onItemClicked: (PokemonResult, View) -> Unit
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(pokemon: PokemonResult) {
@@ -41,12 +42,13 @@ class PokemonAdapter(
             // Carrega a imagem usando Glide
             Glide.with(binding.root.context)
                 .load(pokemon.getImageUrl())
-                .placeholder(R.drawable.ic_launcher_background) // TODO: Adicionar um placeholder real
+                .placeholder(R.drawable.ic_launcher_background)
                 .into(binding.ivPokemonImage)
 
-            // Define o listener de clique
-            binding.root.setOnClickListener {
-                onItemClicked(pokemon)
+            // ◀️ ATUALIZADO: Define o listener de clique na IMAGEM, não no 'root'
+            binding.ivPokemonImage.setOnClickListener {
+                // Passa o pokémon e a própria ImageView para o lambda
+                onItemClicked(pokemon, binding.ivPokemonImage)
             }
         }
     }

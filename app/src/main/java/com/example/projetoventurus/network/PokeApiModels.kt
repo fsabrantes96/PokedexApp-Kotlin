@@ -10,18 +10,15 @@ import retrofit2.http.Query
 // --- INTERFACE DA API (RETROFIT) ---
 
 interface PokeApiService {
-    // Busca a lista paginada de Pokémon
     @GET("pokemon")
     suspend fun getPokemonList(
-        @Query("limit") limit: Int = 151, // Padrão para Gen 1
+        @Query("limit") limit: Int = 20, // Paging 3 vai sobrepor isso
         @Query("offset") offset: Int = 0
     ): PokemonListResponse
 
-    // Busca detalhes de um Pokémon específico pelo nome
     @GET("pokemon/{name}")
     suspend fun getPokemonDetail(@Path("name") name: String): PokemonDetailResponse
 
-    // ◀️ ADICIONADO: Busca Pokémon por tipo
     @GET("type/{name}")
     suspend fun getPokemonByType(@Path("name") name: String): TypeDetailResponse
 }
@@ -53,13 +50,11 @@ data class PokemonResult(
     @SerializedName("name") val name: String,
     @SerializedName("url") val url: String
 ) {
-    // Função auxiliar para extrair o ID da URL e montar a URL da imagem
     fun getImageUrl(): String {
         val id = url.split("/").dropLast(1).last()
         return "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png"
     }
 
-    // Função para extrair o ID
     fun getId(): Int {
         return url.split("/").dropLast(1).last().toIntOrNull() ?: 0
     }
@@ -70,11 +65,18 @@ data class PokemonResult(
 data class PokemonDetailResponse(
     @SerializedName("id") val id: Int,
     @SerializedName("name") val name: String,
-    @SerializedName("height") val height: Int, // Altura em decímetros
-    @SerializedName("weight") val weight: Int, // Peso em hectogramas
+    @SerializedName("height") val height: Int,
+    @SerializedName("weight") val weight: Int,
     @SerializedName("types") val types: List<TypeSlot>,
     @SerializedName("stats") val stats: List<StatSlot>,
-    @SerializedName("sprites") val sprites: Sprites
+    @SerializedName("sprites") val sprites: Sprites,
+    @SerializedName("cries") val cries: Cries // ◀️ ADICIONADO: Campo para os sons
+)
+
+// ◀️ ADICIONADO: Data class para os sons
+data class Cries(
+    @SerializedName("latest") val latest: String, // Som .ogg mais recente
+    @SerializedName("legacy") val legacy: String? // Som .ogg antigo
 )
 
 // Classes aninhadas para Detalhes
@@ -92,7 +94,7 @@ data class StatSlot(
 )
 
 data class StatInfo(
-    @SerializedName("name") val name: String // ex: "hp", "attack", "defense"
+    @SerializedName("name") val name: String
 )
 
 data class Sprites(
@@ -107,14 +109,11 @@ data class OfficialArtwork(
     @SerializedName("front_default") val frontDefault: String
 )
 
-// ◀️ ADICIONADO: Classes de modelo para a resposta da API de Tipo
+// Classes de modelo para a resposta da API de Tipo
 data class TypeDetailResponse(
-    // Contém a lista de todos os pokémons daquele tipo
     @SerializedName("pokemon") val pokemon: List<TypePokemonSlot>
 )
 
 data class TypePokemonSlot(
-    // O objeto 'pokemon' aqui dentro tem 'name' e 'url',
-    // exatamente como o nosso PokemonResult, então podemos reutilizá-lo!
     @SerializedName("pokemon") val pokemon: PokemonResult
 )

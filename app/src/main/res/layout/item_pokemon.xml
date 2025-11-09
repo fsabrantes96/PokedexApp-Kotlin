@@ -19,6 +19,7 @@
             android:layout_height="120dp"
             android:layout_marginTop="8dp"
             android:scaleType="centerCrop"
+            android:transitionName="pokemon_image_transition"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
